@@ -337,7 +337,315 @@ DROP TABLE DiskUsage;        -- tabel weg (pas op!)
 
 ---
 
-## 8. Checklist vóór inleveren
+## 8. Een query opbouwen in 5 stappen
+
+Neem de vraag en beantwoord deze 5 vragen. Elke vraag = één regel SQL.
+
+| Stap | Vraag aan jezelf | SQL |
+|---|---|---|
+| 1 | **Welke kolommen** moet ik laten zien? | `SELECT kolom1, kolom2` (alles = `*`) |
+| 2 | **Uit welke tabel(len)**? | `FROM tabel` (+ `JOIN` bij 2 tabellen) |
+| 3 | **Welke rijen** wel/niet? | `WHERE ...` |
+| 4 | Moet ik **per iets** tellen/optellen? | `GROUP BY ...` (+ `HAVING` voor filter op de groep) |
+| 5 | **Sorteren** of **beperken**? | `ORDER BY ...` / `LIMIT ...` |
+
+### Voorbeeld uitgewerkt
+> *"Laat de naam en het aantal inwoners zien van de steden in Nederland met meer dan 100.000 inwoners, de grootste eerst."*
+
+1. Kolommen: naam, inwoners → `SELECT name, population`
+2. Tabel: steden → `FROM city`
+3. Rijen: in Nederland **en** meer dan 100.000 → `WHERE countrycode = 'NLD' AND population > 100000`
+4. Per iets? nee
+5. Grootste eerst → `ORDER BY population DESC`
+
+```sql
+SELECT name, population
+FROM city
+WHERE countrycode = 'NLD' AND population > 100000
+ORDER BY population DESC;
+```
+
+### Signaalwoorden in de vraag → SQL
+| In de vraag staat... | SQL |
+|---|---|
+| "laat zien", "toon", "geef" | `SELECT` |
+| "alle velden" | `SELECT *` |
+| "uit de tabel ..." | `FROM` |
+| "waarvoor geldt", "waarbij", "alleen de ..." | `WHERE` |
+| "hoger dan", "meer dan", "groter dan" | `>` |
+| "lager dan", "kleiner dan", "minder dan" | `<` |
+| "minstens", "ten minste" | `>=` |
+| "maximaal", "hoogstens" | `<=` |
+| "gelijk aan", "is" | `=` |
+| "niet gelijk", "behalve" | `<>` of `!=` |
+| "begint met A" | `LIKE 'A%'` |
+| "bevat het woord ..." | `LIKE '%woord%'` |
+| "tussen ... en ..." | `BETWEEN ... AND ...` |
+| "één van" | `IN ('a','b')` |
+| "gesorteerd", "van laag naar hoog" | `ORDER BY kolom` (of `ASC`) |
+| "van hoog naar laag", "grootste eerst" | `ORDER BY kolom DESC` |
+| "de eerste 5", "top 5" | `LIMIT 5` |
+| "hoeveel", "aantal" | `COUNT(*)` |
+| "totaal", "som" | `SUM(kolom)` |
+| "gemiddelde" | `AVG(kolom)` |
+| "hoogste", "grootste" | `MAX(kolom)` |
+| "laagste", "kleinste" | `MIN(kolom)` |
+| "per land", "per artiest" | `GROUP BY` |
+| "met meer dan 10 ..." (na tellen) | `HAVING COUNT(*) > 10` |
+| "kleiner/groter dan het gemiddelde" | subquery: `WHERE x < (SELECT AVG(x) FROM ...)` |
+| "die niet voorkomen in tabel ..." | `WHERE kolom NOT IN (SELECT ... FROM ...)` |
+| "die wel voorkomen in tabel ..." | `WHERE kolom IN (SELECT ... FROM ...)` |
+| "samen met ... uit tabel ..." | `JOIN ... ON ...` |
+| "zonder dubbele", "unieke" | `SELECT DISTINCT` |
+| "voeg toe" | `INSERT INTO ... VALUES ...` |
+| "pas aan", "wijzig", "verander" | `UPDATE ... SET ... WHERE ...` |
+| "verwijder" | `DELETE FROM ... WHERE ...` |
+
+### Tekst, getal of datum?
+| Soort | Schrijfwijze | Voorbeeld |
+|---|---|---|
+| Tekst | tussen **enkele** quotes | `WHERE hostname = 'SRV01'` |
+| Getal | zonder quotes | `WHERE freememory > 5000000` |
+| Datum | tussen quotes, jaar-maand-dag | `WHERE date > '2026-10-12'` |
+| Datum + tijd | | `WHERE date BETWEEN '2026-10-12 15:37:00' AND '2026-10-12 15:38:00'` |
+| Leeg | `IS NULL` (niet `= NULL`) | `WHERE localname IS NULL` |
+
+---
+
+## 9. Situaties met uitwerking
+
+### Database ritmania
+
+**1. Toon alle metingen van SRV01.**
+```sql
+SELECT * FROM memoryusage WHERE hostname = 'SRV01';
+```
+
+**2. Toon de 5 metingen met het minste vrije geheugen.**
+```sql
+SELECT date, freememory FROM memoryusage ORDER BY freememory ASC LIMIT 5;
+```
+
+**3. Hoeveel metingen zijn er in totaal?**
+```sql
+SELECT COUNT(*) AS aantal_metingen FROM memoryusage;
+```
+
+**4. Wat was het gemiddelde vrije geheugen, afgerond op hele getallen?**
+```sql
+SELECT ROUND(AVG(freememory)) AS gemiddeld FROM memoryusage;
+```
+
+**5. Toon de metingen die hoger zijn dan het gemiddelde.**
+```sql
+SELECT date, freememory FROM memoryusage
+WHERE freememory > (SELECT AVG(freememory) FROM memoryusage);
+```
+
+**6. Toon de meting(en) met het hoogste vrije geheugen.**
+```sql
+SELECT * FROM memoryusage
+WHERE freememory = (SELECT MAX(freememory) FROM memoryusage);
+```
+
+**7. Toon de metingen van 12 oktober 2026.**
+```sql
+SELECT * FROM memoryusage WHERE DATE(date) = '2026-10-12';
+```
+
+**8. Toon per hostname het aantal metingen en het gemiddelde vrije geheugen.**
+```sql
+SELECT hostname, COUNT(*) AS aantal, AVG(freememory) AS gemiddeld
+FROM memoryusage
+GROUP BY hostname;
+```
+
+**9. Toon alle albums van ABBA.**
+```sql
+SELECT album_name, album_year
+FROM album
+WHERE artist_id = (SELECT artist_id FROM artist WHERE artist_name = 'ABBA');
+```
+of met een JOIN:
+```sql
+SELECT album.album_name, album.album_year
+FROM album
+JOIN artist ON album.artist_id = artist.artist_id
+WHERE artist.artist_name = 'ABBA';
+```
+
+**10. Toon albums uit de jaren 80, oudste eerst, met de naam van de artiest.**
+```sql
+SELECT artist.artist_name, album.album_name, album.album_year
+FROM album
+JOIN artist ON album.artist_id = artist.artist_id
+WHERE album.album_year BETWEEN 1980 AND 1989
+ORDER BY album.album_year;
+```
+
+**11. Toon artiesten met meer dan 1 album.**
+```sql
+SELECT artist.artist_name, COUNT(*) AS aantal
+FROM album
+JOIN artist ON album.artist_id = artist.artist_id
+GROUP BY artist.artist_name
+HAVING COUNT(*) > 1;
+```
+
+**12. Hoeveel artiesten komen uit elk land?**
+```sql
+SELECT artist_country, COUNT(*) AS aantal
+FROM artist
+GROUP BY artist_country
+ORDER BY aantal DESC;
+```
+
+**13. Pas het land van 'Shaka Zulu' aan naar 'South Africa'.**
+```sql
+UPDATE artist SET artist_country = 'South Africa' WHERE artist_name = 'Shaka Zulu';
+SELECT * FROM artist WHERE artist_name = 'Shaka Zulu';   -- controle
+```
+
+**14. Verwijder alle metingen met minder dan 5.000.000 vrij geheugen.**
+```sql
+SELECT * FROM memoryusage WHERE freememory < 5000000;   -- eerst kijken wat je raakt
+DELETE FROM memoryusage WHERE freememory < 5000000;
+```
+
+### Database world
+
+**15. Toon de 10 landen met de meeste inwoners.**
+```sql
+SELECT name, population FROM country ORDER BY population DESC LIMIT 10;
+```
+
+**16. Toon de landen in Europa met een levensverwachting boven de 78.**
+```sql
+SELECT name, lifeexpectancy FROM country
+WHERE continent = 'Europe' AND lifeexpectancy > 78
+ORDER BY lifeexpectancy DESC;
+```
+
+**17. Hoeveel inwoners heeft elk continent in totaal?**
+```sql
+SELECT continent, SUM(population) AS inwoners
+FROM country
+GROUP BY continent
+ORDER BY inwoners DESC;
+```
+
+**18. Toon de hoofdstad van elk land.**
+```sql
+SELECT country.name AS land, city.name AS hoofdstad
+FROM country
+JOIN city ON country.capital = city.id;
+```
+
+**19. Welke talen worden in Nederland gesproken en hoeveel procent?**
+```sql
+SELECT language, percentage, isofficial
+FROM countrylanguage
+WHERE countrycode = 'NLD'
+ORDER BY percentage DESC;
+```
+
+**20. Toon de landen waar Nederlands een officiële taal is.**
+```sql
+SELECT name FROM country
+WHERE code IN (SELECT countrycode FROM countrylanguage
+               WHERE language = 'Dutch' AND isofficial = 'T');
+```
+
+**21. Toon steden met meer inwoners dan de gemiddelde stad.**
+```sql
+SELECT name, population FROM city
+WHERE population > (SELECT AVG(population) FROM city)
+ORDER BY population DESC;
+```
+
+**22. Toon landen zonder onafhankelijkheidsjaar.**
+```sql
+SELECT name FROM country WHERE indepyear IS NULL;
+```
+
+**23. Voeg een stad toe, pas hem aan en verwijder hem weer.**
+```sql
+INSERT INTO city (name, countrycode, district, population)
+VALUES ('Doetinchem', 'NLD', 'Gelderland', 58000);
+
+UPDATE city SET population = 58500 WHERE name = 'Doetinchem';
+
+DELETE FROM city WHERE name = 'Doetinchem';
+```
+
+### Kolommen van de world-database (handig om te weten)
+| Tabel | Belangrijkste kolommen |
+|---|---|
+| `country` | `code`, `name`, `continent`, `region`, `population`, `lifeexpectancy`, `indepyear`, `localname`, `capital` |
+| `city` | `id`, `name`, `countrycode`, `district`, `population` |
+| `countrylanguage` | `countrycode`, `language`, `isofficial` (`'T'`/`'F'`), `percentage` |
+
+Koppelingen: `city.countrycode = country.code` · `countrylanguage.countrycode = country.code` · `country.capital = city.id`
+
+---
+
+## 10. Situaties: gebruikers en rechten
+
+**"Maak een gebruiker die alleen gegevens mag bekijken in ritmania"**
+```sql
+CREATE USER 'lezer'@'localhost' IDENTIFIED BY 'Lezen123!';
+GRANT SELECT ON ritmania.* TO 'lezer'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+**"Het monitorscript mag alleen metingen toevoegen en verwijderen in MemoryUsage"** (want Results.txt doet DELETE + INSERT)
+```sql
+CREATE USER 'monitor'@'localhost' IDENTIFIED BY 'Monitor123!';
+GRANT SELECT, INSERT, DELETE ON ritmania.memoryusage TO 'monitor'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+**"Een beheerder mag alles in ritmania, maar niet in andere databases"**
+```sql
+CREATE USER 'dbbeheer'@'localhost' IDENTIFIED BY 'Beheer123!';
+GRANT ALL PRIVILEGES ON ritmania.* TO 'dbbeheer'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+**"Een collega mag vanaf het netwerk 192.168.10.x de world-database lezen"**
+```sql
+CREATE USER 'collega'@'192.168.10.%' IDENTIFIED BY 'Collega123!';
+GRANT SELECT ON world.* TO 'collega'@'192.168.10.%';
+FLUSH PRIVILEGES;
+```
+
+**"Laat zien welke rechten een gebruiker heeft"**
+```sql
+SHOW GRANTS FOR 'monitor'@'localhost';
+```
+
+**"Ontneem het recht om te verwijderen"**
+```sql
+REVOKE DELETE ON ritmania.memoryusage FROM 'monitor'@'localhost';
+```
+
+Uitleg die je kunt gebruiken: *"Ik geef de gebruiker alleen de rechten die nodig zijn voor zijn taak (least privilege). Zo kan hij geen gegevens beschadigen waar hij niet aan hoeft te komen."*
+
+---
+
+## 11. Je SQL-document: per query zo opbouwen
+
+```text
+Query 3
+Opdracht:  Laat de velden date en freememory zien waarvoor freememory hoger is dan 5000000.
+SQL:       SELECT date, freememory FROM memoryusage WHERE freememory > 5000000;
+Resultaat: [screenshot]
+Uitleg:    Met WHERE filter ik alleen de metingen met meer dan 5.000.000 KB vrij geheugen.
+           Het resultaat is bijvoorbeeld 18 rijen; de andere metingen vallen eronder.
+```
+Ging er iets fout? Voeg toe: **Fout:** (foutcode + melding) en **Oplossing:** (wat je hebt aangepast).
+
+## 12. Checklist vóór inleveren
 - [ ] Juiste database actief bij elke query (`USE ...`)
 - [ ] Results.txt geïmporteerd, fout 1064 beschreven + opgelost
 - [ ] Elke query: opdracht + SQL + screenshot + uitleg

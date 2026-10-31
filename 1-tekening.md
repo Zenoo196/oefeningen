@@ -244,7 +244,199 @@ Script finished at 10/12/2026 15:38:30
 
 ---
 
-## 8. Checklist vóór inleveren
+## 8. Wat schrijf je IN een blok? (zin → blok)
+
+De opdrachttekst is meestal lang. Jij maakt er **korte zinnen** van: een werkwoord + wat. Hieronder: wat er in de opdracht staat, welk symbool, en **letterlijk de tekst** die je in het blok typt.
+
+### Proces (rechthoek)
+| In de opdracht staat... | Tekst in het blok |
+|---|---|
+| "Stel standaardwaarden in voor het aantal seconden en de bestandsnaam" | `Definieer default variabelen` |
+| "Als er een argument wordt meegegeven, gebruik dat dan als aantal seconden" | `Vervang default waarde voor seconden` |
+| "Bereken wanneer het script moet stoppen" | `Bepaal de stoptijd met behulp van $seconds` |
+| "Haal het vrije geheugen op" | `Haal vrije geheugen op` |
+| "Lees de lijst met servers in" | `Lees serverlijst in uit bestand` |
+| "Hoog de teller met 1 op" | `Verhoog teller met 1` |
+| "Zet de teller op 0" | `Zet $teller op 0` |
+| "Ping het doeladres" | `Ping $doel` |
+| "Start de service opnieuw" | `Herstart service` |
+| "Tel hoeveel processen er draaien" | `Tel aantal processen` |
+
+### Invoer / uitvoer (parallellogram)
+| In de opdracht staat... | Tekst in het blok |
+|---|---|
+| "Vraag de gebruiker of het bestand overschreven mag worden" | `Vraag: bestand overschrijven? (y/n)` |
+| "Laat de gebruiker kiezen uit 1, 2 of 9" | `Toon menu en vraag keuze (1, 2, 9)` |
+| "Toon een waarschuwing dat het bestand al bestaat" | `Toon waarschuwing: bestand bestaat al` |
+| "Maak het scherm leeg en toon wat het script gaat doen" | `Maak scherm leeg en toon startmelding` |
+| "Toon de gemeten waarde op het scherm" | `Toon gemeten waarde` |
+| "Laat iets bewegends zien" | `Toon aftelling (iets bewegends)` |
+| "Meld waar het bestand staat" | `Toon locatie van het resultatenbestand` |
+| "Geef een passende melding" | `Toon melding: bestand wordt niet geopend` |
+| "Meld dat het script klaar is met de tijd" | `Toon eindmelding met tijd` |
+| "Vraag de naam van de server" | `Vraag servernaam` |
+
+### Document (rechthoek met golf)
+| In de opdracht staat... | Tekst in het blok |
+|---|---|
+| "Maak een nieuw resultatenbestand met de eerste regels" | `Maak nieuw resultatenbestand en schrijf eerste regels weg` |
+| "Schrijf het resultaat weg" | `Schrijf meting weg in resultatenbestand` |
+| "Voeg een regel toe aan het logbestand" | `Voeg regel toe aan logbestand` |
+| "Open het bestand" | `Open resultatenbestand` |
+
+> Mag je ook in een gewone rechthoek zetten (dat deed de docent ook). Zolang het consequent is.
+
+### Beslissing (ruit): altijd een **vraag met ?**
+| In de opdracht staat... | Tekst in de ruit | Labels |
+|---|---|---|
+| "Als er een eerste argument is opgegeven..." | `$args[0] opgegeven?` | Ja / Nee |
+| "Controleer of het bestand al bestaat" | `Bestaat het resultatenbestand al?` | Ja / Nee |
+| "Vraag net zolang tot 1, 2 of 9 is ingevoerd" | `Geldige keuze (1, 2, 9)?` | Nee → terug / Ja |
+| "Bij keuze 9 stopt het script" | `Keuze = 9?` | Ja → Stop / Nee |
+| "Zolang de tijd niet om is" | `Stoptijd bereikt?` | Nee → terug / Ja |
+| "Herhaal 10 keer" | `$teller < 10?` | Ja → lus / Nee |
+| "Als de ping lukt..." | `Ping gelukt?` | Ja / Nee |
+| "Als de service niet draait..." | `Service actief?` | Ja / Nee |
+| "Als het geheugen onder de 1 GB komt..." | `Vrij geheugen < 1 GB?` | Ja / Nee |
+| "Vraag net zolang tot y of n" | `Antwoord y of n?` | Nee → terug / Ja |
+| "Als de gebruiker y kiest..." | `Antwoord = y?` | Ja / Nee |
+
+**Gouden tip:** zinnen met **"als"**, **"controleer"**, **"zolang"**, **"net zolang tot"**, **"herhaal"** worden **altijd** een ruit.
+
+### Pijl-labels
+- Bij een ja/nee-vraag: `Ja` en `Nee` (hoofdletter, consequent).
+- Bij een keuze: de waarde zelf, bijv. `1`, `2`, `9`.
+- Een terugpijl hoeft geen extra tekst, het label `Nee` (of `Ja`) staat al op de uitgang van de ruit.
+
+---
+
+## 9. Oefensituaties met uitwerking
+
+Probeer eerst zelf te tekenen, kijk daarna naar de uitwerking.
+
+### Situatie A: DiskSpace-monitor (lijkt het meest op de oefening)
+> *Het script heeft als standaard 10 seconden en bestand Disk.txt. Als de gebruiker argumenten meegeeft, worden die gebruikt. Als het bestand al bestaat, kiest de gebruiker: 1 aanvullen, 2 overschrijven, 9 stoppen; er wordt net zolang gevraagd tot de keuze geldig is. Zolang de tijd niet om is: meet de vrije schijfruimte van C:, toon en schrijf weg, toon een draaiend streepje. Toon aan het eind waar het bestand staat.*
+
+Tellen: 2 argument-ruiten, 1 invoerlus, 1 keuze met 3 uitkomsten, 1 tijdlus.
+
+```mermaid
+flowchart TD
+    A(["Start"]) --> B["Definieer default variabelen (10 sec, Disk.txt)"]
+    B --> C{"$args[0] opgegeven?"}
+    C -- Ja --> D["Vervang default seconden"]
+    C -- Nee --> E{"$args[1] opgegeven?"}
+    D --> E
+    E -- Ja --> F["Vervang default bestandsnaam"]
+    E -- Nee --> G{"Bestaat Disk.txt al?"}
+    F --> G
+    G -- Nee --> H["Maak nieuw bestand met eerste regels"]
+    G -- Ja --> I[/"Toon menu en vraag keuze (1, 2, 9)"/]
+    I --> J{"Geldige keuze?"}
+    J -- Nee --> I
+    J -- Ja --> K{"Keuze = 9?"}
+    K -- Ja --> L(["Stop script"])
+    K -- Nee --> M{"Keuze = 2?"}
+    M -- Ja --> H
+    M -- Nee --> N["Bepaal stoptijd"]
+    H --> N
+    N --> O["Meet vrije schijfruimte C:"]
+    O --> P[/"Toon en schrijf meting weg"/]
+    P --> Q[/"Toon draaiend streepje"/]
+    Q --> R{"Stoptijd bereikt?"}
+    R -- Nee --> O
+    R -- Ja --> S[/"Toon locatie van het bestand"/]
+    S --> T(["Einde"])
+```
+
+### Situatie B: PingLogger (tellerlus)
+> *Het script pingt een doeladres (standaard 8.8.8.8) een aantal keer (standaard 5). Het resultaat van elke ping wordt getoond en in ping.log gezet. Lukt de ping niet, dan krijgt de gebruiker een rode melding. Aan het eind wordt het aantal mislukte pings getoond.*
+
+```mermaid
+flowchart TD
+    A(["Start"]) --> B["Definieer default variabelen ($doel, $aantal, $log)"]
+    B --> C["Zet $teller en $mislukt op 0"]
+    C --> D{"$teller kleiner dan $aantal?"}
+    D -- Ja --> E["Ping $doel"]
+    E --> F{"Ping gelukt?"}
+    F -- Ja --> G[/"Toon: ping gelukt"/]
+    F -- Nee --> H[/"Toon rode melding: ping mislukt"/]
+    H --> I["Verhoog $mislukt met 1"]
+    G --> J["Schrijf resultaat weg in ping.log"]
+    I --> J
+    J --> K["Verhoog $teller met 1"]
+    K --> D
+    D -- Nee --> L[/"Toon aantal mislukte pings"/]
+    L --> M(["Einde"])
+```
+Let op: de terugpijl gaat naar de **ruit** (`$teller kleiner dan $aantal?`), en de teller wordt **in** de lus verhoogd.
+
+### Situatie C: Menu dat blijft terugkomen
+> *Het script toont een menu: 1 = toon vrije schijfruimte, 2 = toon draaiende processen, 9 = afsluiten. Na elke keuze komt het menu terug, tot de gebruiker 9 kiest. Bij een ongeldige keuze krijgt de gebruiker een melding.*
+
+```mermaid
+flowchart TD
+    A(["Start"]) --> B[/"Toon menu en vraag keuze"/]
+    B --> C{"Keuze = 1?"}
+    C -- Ja --> D[/"Toon vrije schijfruimte"/]
+    C -- Nee --> E{"Keuze = 2?"}
+    E -- Ja --> F[/"Toon draaiende processen"/]
+    E -- Nee --> G{"Keuze = 9?"}
+    G -- Nee --> H[/"Toon melding: ongeldige keuze"/]
+    D --> B
+    F --> B
+    H --> B
+    G -- Ja --> I(["Einde"])
+```
+
+### Situatie D: Service-check met lijst (ForEach)
+> *Het script leest een lijst met servicenamen uit services.txt. Bestaat dat bestand niet, dan stopt het script met een melding. Voor elke service wordt gecontroleerd of hij draait. Zo niet, dan wordt hij gestart en wordt dat in een logbestand gezet.*
+
+```mermaid
+flowchart TD
+    A(["Start"]) --> B{"Bestaat services.txt?"}
+    B -- Nee --> C[/"Toon melding: bestand niet gevonden"/]
+    C --> D(["Stop script"])
+    B -- Ja --> E["Lees servicelijst in"]
+    E --> F{"Nog een service in de lijst?"}
+    F -- Ja --> G{"Service actief?"}
+    G -- Ja --> H[/"Toon: service draait"/]
+    G -- Nee --> I["Start service"]
+    I --> J["Schrijf actie weg in logbestand"]
+    H --> F
+    J --> F
+    F -- Nee --> K[/"Toon eindmelding"/]
+    K --> L(["Einde"])
+```
+Een **ForEach** teken je als ruit `Nog een ... in de lijst?` met een terugpijl.
+
+### Situatie E: Invoer controleren op een getal
+> *Vraag de gebruiker hoeveel seconden er gemeten moet worden. Dit moet een getal tussen 1 en 60 zijn; vraag net zolang tot dat zo is.*
+
+```mermaid
+flowchart TD
+    A[/"Vraag aantal seconden"/] --> B{"Getal tussen 1 en 60?"}
+    B -- Nee --> C[/"Toon melding: ongeldige invoer"/]
+    C --> A
+    B -- Ja --> D["verder..."]
+```
+
+---
+
+## 10. Vastgelopen? Stel jezelf deze vragen
+1. **Wat is de allereerste stap?** Bijna altijd: *Definieer default variabelen*.
+2. **Staat er "als" of "controleer"?** → ruit. Wat zijn de twee uitgangen?
+3. **Staat er "net zolang tot" of "zolang"?** → ruit + terugpijl. Waar moet de pijl heen? (naar de **vraag** bij invoer, naar het **eerste blok in de lus** bij een tijd-/tellerlus)
+4. **Moet de gebruiker iets zien of typen?** → parallellogram.
+5. **Stopt het script hier?** → Einde-symbool (*Stop script*).
+6. **Komen twee paden weer samen?** → laat beide pijlen naar hetzelfde volgende blok wijzen.
+7. **Weet je niet hoe je het moet noemen?** Gebruik de woorden uit de opdracht zelf, ingekort.
+8. **Te groot voor de pagina?** Gebruik verbindingspunten **A**, **B** (rondje met letter).
+
+> Liever een simpele, **volledige** tekening dan een mooie halve. Twijfel je over een symbool? Kies er één en wees consequent.
+
+---
+
+## 11. Checklist vóór inleveren
 - [ ] Precies **één Start**; elk pad eindigt bij een Einde (of *Stop script*)
 - [ ] Elke stap uit de beschrijving zit erin (vergelijk je nummers)
 - [ ] Juiste symbool per stap (vraag/toon = parallellogram!)
